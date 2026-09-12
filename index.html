@@ -1,0 +1,972 @@
+<title>Pull Request #1</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap');
+
+:root{
+  --bg:#0a0e14;
+  --panel:#111823;
+  --panel-2:#0d131c;
+  --panel-3:#161f2c;
+  --line:#222d3d;
+  --line-2:#2e3b4e;
+  --txt:#c9d6e5;
+  --txt-dim:#8494a8;
+  --txt-faint:#5c6a7d;
+  --green:#3fb950;
+  --green-dim:#1a4d26;
+  --red:#f85149;
+  --purple:#a371f7;
+  --blue:#58a6ff;
+  --amber:#d29922;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color-scheme:dark;
+  --sans:'Inter',system-ui,-apple-system,Segoe UI,sans-serif;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  background:var(--bg);
+  color:var(--txt);
+  font-family:var(--sans);
+  font-size:15px;
+  line-height:1.6;
+  overflow-x:hidden;
+}
+#rain{position:fixed;inset:0;z-index:0;opacity:.4}
+#fx{position:fixed;inset:0;z-index:90;pointer-events:none}
+#stage{position:relative;z-index:10;max-width:880px;margin:0 auto;padding:28px 18px 90px}
+
+.screen{display:none}
+.screen.on{display:block}
+
+/* ---------- boot terminal ---------- */
+#boot{
+  font-family:var(--mono);
+  font-size:13.5px;
+  line-height:1.85;
+  background:var(--panel-2);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:18px 20px 22px;
+  margin-top:8vh;
+  box-shadow:0 24px 60px -30px #000;
+}
+#boot .bar{display:flex;gap:7px;align-items:center;margin:-4px 0 14px}
+#boot .bar i{width:11px;height:11px;border-radius:50%;display:block}
+#boot .bar .t{margin-left:10px;color:var(--txt-faint);font-size:12px;letter-spacing:.02em}
+#bootlog{white-space:pre-wrap;word-break:break-word;margin:0;min-height:190px}
+.cur{display:inline-block;width:8px;height:15px;background:var(--green);vertical-align:-2px;animation:blink 1s steps(2,start) infinite}
+@keyframes blink{50%{opacity:0}}
+.c-g{color:var(--green)}.c-b{color:var(--blue)}.c-p{color:var(--purple)}
+.c-d{color:var(--txt-faint)}.c-a{color:var(--amber)}.c-r{color:var(--red)}
+#skip{
+  margin-top:16px;background:none;border:1px solid var(--line-2);color:var(--txt-faint);
+  font-family:var(--mono);font-size:11.5px;padding:5px 12px;border-radius:6px;cursor:pointer;
+}
+#skip:hover{color:var(--txt);border-color:var(--txt-faint)}
+
+/* ---------- window chrome ---------- */
+.window{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow:0 30px 80px -40px #000,0 0 0 1px #ffffff05;
+  animation:rise .5s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+.chrome{
+  display:flex;align-items:center;gap:7px;
+  padding:10px 14px;background:var(--panel-2);border-bottom:1px solid var(--line);
+}
+.chrome i{width:11px;height:11px;border-radius:50%;display:block}
+.chrome .repo{
+  margin-left:10px;font-family:var(--mono);font-size:12px;color:var(--txt-faint);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.chrome .repo b{color:var(--txt-dim);font-weight:500}
+
+.head{padding:20px 22px 0}
+.badge{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--mono);font-size:11.5px;font-weight:500;letter-spacing:.02em;
+  padding:4px 11px;border-radius:20px;
+  background:var(--green-dim);color:#7ee787;border:1px solid #2ea04340;
+  transition:background .45s,color .45s,border-color .45s;
+}
+.badge.merged{background:#2b1f4e;color:#c9a9ff;border-color:#a371f740}
+.badge .dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+h1.title{
+  font-size:24px;line-height:1.3;font-weight:600;margin:13px 0 6px;color:#e6edf5;
+  letter-spacing:-.015em;
+}
+h1.title .num{color:var(--txt-faint);font-weight:400}
+.byline{font-size:13.5px;color:var(--txt-dim);margin:0 0 18px}
+.byline code{
+  font-family:var(--mono);font-size:12px;background:var(--panel-3);
+  padding:2px 7px;border-radius:5px;color:var(--blue);border:1px solid var(--line);
+}
+.byline b{color:var(--txt);font-weight:500}
+
+.tabs{display:flex;gap:2px;padding:0 22px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{
+  font-size:13px;color:var(--txt-dim);padding:9px 13px;border-bottom:2px solid transparent;
+  white-space:nowrap;
+}
+.tab.sel{color:#e6edf5;border-bottom-color:var(--amber);font-weight:500}
+.tab .n{
+  font-family:var(--mono);font-size:11px;background:var(--panel-3);
+  padding:1px 7px;border-radius:20px;margin-left:6px;color:var(--txt-faint);
+}
+
+.body{padding:22px}
+.sec-label{
+  font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--txt-faint);margin:0 0 9px;
+}
+
+/* ---------- diff ---------- */
+.diff{border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--panel-2)}
+.diff .fname{
+  font-family:var(--mono);font-size:12px;padding:9px 14px;color:var(--txt-dim);
+  background:var(--panel-3);border-bottom:1px solid var(--line);
+  display:flex;justify-content:space-between;gap:10px;
+}
+.diff .fname .stat b{color:var(--green);font-weight:500}
+.diff .fname .stat s{color:var(--red);text-decoration:none}
+.diff pre{margin:0;font-family:var(--mono);font-size:12.5px;line-height:1.75;overflow-x:auto}
+.diff .ln{display:block;padding:0 14px 0 0;white-space:pre}
+.diff .ln .g{
+  display:inline-block;width:34px;text-align:right;padding-right:12px;
+  color:#3d4a5c;user-select:none;
+}
+.diff .add{background:#1b3a2340}
+.diff .add .g{color:#2ea043}
+.diff .del{background:#4b1f1f40}
+.diff .del .g{color:#8b3a36}
+.k{color:#ff7b72}.s{color:#a5d6ff}.f{color:#d2a8ff}.p{color:#79c0ff}.cm{color:#6a7684;font-style:italic}
+
+/* ---------- checks ---------- */
+.checks{border:1px solid var(--line);border-radius:9px;background:var(--panel-2);overflow:hidden}
+.check{
+  display:flex;align-items:center;gap:11px;padding:11px 15px;
+  border-bottom:1px solid var(--line);font-size:13.5px;
+}
+.check:last-child{border-bottom:0}
+.check .ic{
+  width:17px;height:17px;border-radius:50%;flex:none;display:grid;place-items:center;
+  font-size:10px;font-weight:700;font-family:var(--mono);
+  background:var(--green-dim);color:#7ee787;transition:.4s;
+}
+.check.pend .ic{background:#4a3a10;color:#e3b341;animation:pulse 1.6s ease-in-out infinite}
+.check.pend .nm{color:var(--txt-dim)}
+@keyframes pulse{50%{opacity:.4}}
+.check .nm{font-family:var(--mono);font-size:12.5px;color:var(--txt)}
+.check .msg{color:var(--txt-faint);font-size:12.5px;margin-left:auto;text-align:right}
+
+/* ---------- thread ---------- */
+#thread{margin-top:4px}
+.cmt{
+  display:flex;gap:11px;padding:11px 0;
+  animation:slide .35s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes slide{from{opacity:0;transform:translateX(-8px)}}
+.cmt .av{
+  width:27px;height:27px;border-radius:50%;flex:none;display:grid;place-items:center;
+  font-family:var(--mono);font-size:11px;font-weight:700;
+  background:var(--panel-3);color:var(--txt-faint);border:1px solid var(--line);
+}
+.cmt .av.bot{background:#2b1f4e;color:#c9a9ff;border-color:#a371f740}
+.cmt .bd{flex:1;min-width:0}
+.cmt .who{font-family:var(--mono);font-size:12px;color:var(--txt-dim);margin-bottom:1px}
+.cmt .who .tag{
+  font-size:10px;border:1px solid var(--line-2);padding:0 5px;border-radius:20px;
+  margin-left:6px;color:var(--txt-faint);
+}
+.cmt .tx{font-size:13.5px;color:var(--txt)}
+.cmt .tx code{font-family:var(--mono);font-size:12px;color:var(--amber)}
+
+/* ---------- review row ---------- */
+.review{
+  margin-top:20px;padding:18px;border:1px solid var(--line);border-radius:9px;
+  background:var(--panel-2);
+}
+.review .q{font-size:14px;color:var(--txt-dim);margin:0 0 15px}
+.review .q b{color:#e6edf5;font-weight:500}
+.row{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+
+.btn{
+  font-family:var(--sans);font-size:14.5px;font-weight:500;
+  padding:11px 22px;border-radius:8px;border:1px solid transparent;cursor:pointer;
+  display:inline-flex;align-items:center;gap:9px;white-space:nowrap;
+}
+.btn .gl{font-family:var(--mono);font-size:13px;opacity:.85}
+#yes{
+  background:#238636;color:#fff;border-color:#2ea04366;
+  box-shadow:0 0 0 0 #3fb95000;
+  transition:transform .35s cubic-bezier(.3,1.5,.5,1),box-shadow .35s,background .35s;
+  transform-origin:left top;
+}
+.row{align-items:flex-start}
+#yes:hover{background:#2ea043;box-shadow:0 0 26px -4px #3fb95066}
+#yes:active{transform:scale(var(--sc,1)) translateY(1px)}
+
+.noslot{position:relative;min-height:44px;min-width:186px;display:flex;align-items:center}
+.noslot.empty::after{
+  content:'404 — button not found';
+  font-family:var(--mono);font-size:11.5px;color:var(--txt-faint);
+  border:1px dashed var(--line-2);border-radius:8px;padding:11px 16px;width:100%;
+  text-align:center;
+}
+#no{
+  background:var(--panel-3);color:var(--txt-dim);border-color:var(--line-2);
+  transition:transform .18s cubic-bezier(.2,.9,.3,1.3),opacity .3s,background .3s,color .3s;
+  z-index:80;
+}
+#no:hover{border-color:#f8514966;color:#f85149}
+#no.loose{position:fixed;margin:0;transition:left .19s cubic-bezier(.22,1,.36,1),top .19s cubic-bezier(.22,1,.36,1),transform .2s,opacity .3s}
+#no.giveup{background:#1f2b1f;color:#7ee787;border-color:#2ea04355;opacity:1!important}
+
+.meter{margin-top:16px;display:flex;align-items:center;gap:11px;font-family:var(--mono);font-size:11.5px;color:var(--txt-faint)}
+.meter .track{flex:1;height:4px;background:var(--panel-3);border-radius:4px;overflow:hidden;max-width:230px}
+.meter .fill{height:100%;width:100%;background:var(--green);transition:width .4s,background .4s}
+
+/* ---------- merged ---------- */
+#merged{margin-top:22px;display:none}
+#merged.on{display:block;animation:rise .55s cubic-bezier(.2,.8,.2,1) both}
+.mcard{
+  border:1px solid #a371f733;border-radius:11px;padding:24px;
+  background:linear-gradient(180deg,#1a1330,var(--panel-2));
+}
+.mcard h2{margin:0 0 8px;font-size:19px;color:#e6edf5;font-weight:600;letter-spacing:-.01em}
+.mcard p{margin:0 0 16px;color:var(--txt-dim);font-size:14px}
+.mcard .note{
+  border-left:2px solid var(--purple);padding:3px 0 3px 14px;margin:0 0 16px;
+  color:var(--txt);font-size:14.5px;
+}
+.gitlog{
+  font-family:var(--mono);font-size:12px;background:#0a0e14cc;border:1px solid var(--line);
+  border-radius:8px;padding:13px 15px;color:var(--txt-dim);overflow-x:auto;white-space:pre;margin:0;
+}
+
+/* ---------- builder ---------- */
+.build{max-width:620px;margin:6vh auto 0}
+.build h1{font-size:26px;margin:0 0 6px;color:#e6edf5;font-weight:600;letter-spacing:-.02em}
+.build .lead{color:var(--txt-dim);font-size:14.5px;margin:0 0 26px}
+.build .lead code{font-family:var(--mono);font-size:12.5px;color:var(--amber)}
+.fld{margin-bottom:16px}
+.fld label{display:block;font-family:var(--mono);font-size:11.5px;color:var(--txt-faint);margin-bottom:6px;letter-spacing:.04em}
+.fld input,.fld textarea{
+  width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
+  padding:11px 13px;color:var(--txt);font-family:var(--sans);font-size:14.5px;
+}
+.fld textarea{resize:vertical;min-height:76px;line-height:1.6}
+.fld input:focus,.fld textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px #58a6ff22}
+.err{color:var(--red);font-size:12.5px;margin-top:6px;display:none;font-family:var(--mono)}
+.err.on{display:block}
+.build .acts{display:flex;gap:11px;flex-wrap:wrap;margin-top:22px}
+.pbtn{
+  font-family:var(--sans);font-size:14px;font-weight:500;padding:11px 20px;border-radius:8px;
+  cursor:pointer;border:1px solid var(--line-2);background:var(--panel-3);color:var(--txt);
+}
+.pbtn.prim{background:#238636;border-color:#2ea04366;color:#fff}
+.pbtn.prim:hover{background:#2ea043}
+.pbtn:hover{border-color:var(--txt-faint)}
+#out{display:none;margin-top:24px}
+#out.on{display:block;animation:rise .4s ease both}
+#link,#frag{
+  font-family:var(--mono);font-size:12px;background:var(--panel-2);border:1px solid var(--line);
+  border-radius:8px;padding:13px;color:var(--blue);word-break:break-all;line-height:1.6;
+}
+#frag{color:var(--amber)}
+#fragWrap{margin-top:22px}
+.olabel{
+  font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--txt-faint);margin:0 0 7px;
+}
+#out .acts{margin-top:11px}
+.warn{
+  margin-top:14px;font-size:12.5px;color:var(--txt-faint);border-left:2px solid var(--amber);
+  padding-left:12px;line-height:1.65;
+}
+.foot{margin-top:34px;font-family:var(--mono);font-size:11.5px;color:#3d4a5c;text-align:center}
+.foot a{color:var(--txt-faint);text-decoration:none;border-bottom:1px dotted var(--line-2);cursor:pointer}
+.foot a:hover{color:var(--txt-dim)}
+
+@media (max-width:560px){
+  #stage{padding:16px 12px 80px}
+  h1.title{font-size:20px}
+  .body,.head{padding-left:16px;padding-right:16px}
+  .tabs{padding:0 16px}
+  .row{flex-direction:column;align-items:stretch}
+  .btn{justify-content:center;width:100%}
+  .noslot{width:100%}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;animation-iteration-count:1!important}
+  #no.loose{transition:none}
+  #rain{display:none}
+}
+</style>
+
+<canvas id="rain" aria-hidden="true"></canvas>
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<main id="stage">
+
+<section id="boot" class="screen on" aria-label="Terminal boot sequence">
+  <div class="bar">
+    <i style="background:#f85149"></i><i style="background:#d29922"></i><i style="background:#3fb950"></i>
+    <span class="t">zsh — ask-out — 80×24</span>
+  </div>
+  <pre id="bootlog"></pre>
+  <button id="skip">skip intro ↵</button>
+</section>
+
+<section id="pr" class="screen" aria-label="Pull request">
+  <div class="window">
+    <div class="chrome">
+      <i style="background:#f85149"></i><i style="background:#d29922"></i><i style="background:#3fb950"></i>
+      <span class="repo"><b id="repoName">you/us</b> — pull request #1</span>
+    </div>
+
+    <div class="head">
+      <span class="badge" id="prBadge"><span class="dot"></span><span id="badgeTxt">Open</span></span>
+      <h1 class="title"><span id="prTitle">feat: add you to my Friday night</span> <span class="num">#1</span></h1>
+      <p class="byline"><b id="fromName">someone</b> wants to merge <b>1 commit</b> into <code>main</code> from <code id="branchName">feat/date-night</code></p>
+    </div>
+
+    <div class="tabs">
+      <span class="tab sel">Conversation<span class="n" id="cmtCount">1</span></span>
+      <span class="tab">Commits<span class="n">1</span></span>
+      <span class="tab">Checks<span class="n">4</span></span>
+      <span class="tab">Files changed<span class="n">1</span></span>
+    </div>
+
+    <div class="body">
+      <p class="sec-label">Files changed</p>
+      <div class="diff">
+        <div class="fname">
+          <span>src/schedule/friday.ts</span>
+          <span class="stat"><b>+6</b> <s>−3</s></span>
+        </div>
+        <pre id="diffBody"></pre>
+      </div>
+
+      <p class="sec-label" style="margin-top:22px">Checks</p>
+      <div class="checks" id="checks">
+        <div class="check"><span class="ic">✓</span><span class="nm">vibes / immaculate</span><span class="msg">passed in 0.4s</span></div>
+        <div class="check"><span class="ic">✓</span><span class="nm">build / courage</span><span class="msg">passed after 3 retries</span></div>
+        <div class="check"><span class="ic">✓</span><span class="nm">lint / overthinking</span><span class="msg">0 errors, 47 warnings</span></div>
+        <div class="check pend" id="blockCheck"><span class="ic">●</span><span class="nm">review / your-decision</span><span class="msg" id="blockMsg">waiting on 1 reviewer</span></div>
+      </div>
+
+      <p class="sec-label" style="margin-top:22px">Conversation</p>
+      <div id="thread"></div>
+
+      <div class="review">
+        <p class="q" id="askLine">Approving this merges <b>one evening</b> into <b>main</b>. This action cannot be reverted.</p>
+        <div class="row">
+          <button class="btn" id="yes"><span class="gl">✓</span> Approve &amp; merge</button>
+          <span class="noslot" id="noslot">
+            <button class="btn" id="no"><span class="gl">✕</span> <span id="noTxt">Request changes</span></button>
+          </span>
+        </div>
+        <div class="meter">
+          <span>reviewer resolve</span>
+          <span class="track"><span class="fill" id="meterFill"></span></span>
+          <span id="meterVal">100%</span>
+        </div>
+      </div>
+
+      <div id="merged">
+        <div class="mcard">
+          <h2 id="mergeTitle">Merged. No conflicts.</h2>
+          <p id="mergeSub">Branch <code>feat/date-night</code> was squashed into <code>main</code>.</p>
+          <p class="note" id="mergeNote"></p>
+          <pre class="gitlog" id="gitlog"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="foot">built with questionable judgement · <a id="toBuilder">make your own →</a></p>
+</section>
+
+<section id="builder" class="screen" aria-label="Link builder">
+  <div class="build">
+    <h1>Open a pull request.</h1>
+    <p class="lead">Fill this in, send the link. They get a PR they can only approve — <code>Request changes</code> runs away.</p>
+
+    <div class="fld">
+      <label for="f-from">your name</label>
+      <input id="f-from" maxlength="28" placeholder="alex" autocomplete="off">
+      <p class="err" id="e-from">needed — it goes on the commit</p>
+    </div>
+    <div class="fld">
+      <label for="f-to">their name</label>
+      <input id="f-to" maxlength="28" placeholder="sam" autocomplete="off">
+      <p class="err" id="e-to">needed — it goes in the PR title</p>
+    </div>
+    <div class="fld">
+      <label for="f-what">what you're asking for</label>
+      <input id="f-what" maxlength="46" placeholder="dinner on Friday" autocomplete="off">
+    </div>
+    <div class="fld">
+      <label for="f-note">the note they see after they approve</label>
+      <textarea id="f-note" maxlength="220" placeholder="I've been rewriting this message for 40 minutes. 7:30, that ramen place you keep mentioning?"></textarea>
+    </div>
+
+    <div class="acts">
+      <button class="pbtn prim" id="gen">Generate link</button>
+      <button class="pbtn" id="prev">Preview it</button>
+    </div>
+
+    <div id="out">
+      <p class="olabel" id="lab1">full link — send this</p>
+      <div id="link"></div>
+      <div class="acts"><button class="pbtn" id="copy">Copy link</button></div>
+
+      <div id="fragWrap">
+        <p class="olabel" id="lab2">or just the code</p>
+        <div id="frag"></div>
+        <div class="acts"><button class="pbtn" id="copyFrag">Copy code</button></div>
+      </div>
+
+      <p class="warn" id="hostNote"></p>
+      <p class="warn">Everything lives in the link itself — there's no server and nothing is stored. That also means anyone holding the link can read the names and the note, so don't put anything in there you'd mind being forwarded.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+(function(){
+'use strict';
+
+var RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+var $ = function(id){ return document.getElementById(id); };
+
+/* ---------------- config from url hash ---------------- */
+var DEF = {
+  from:'someone with a crush',
+  to:'you',
+  what:'dinner on Friday',
+  note:"No pressure, no expectations — but if you're free, I'd really like to see you."
+};
+function readCfg(){
+  var h = location.hash || '';
+  var m = h.match(/p=([^&]+)/);
+  if(!m) return null;
+  try{
+    var j = JSON.parse(decodeURIComponent(escape(atob(m[1].replace(/-/g,'+').replace(/_/g,'/')))));
+    return {
+      from: String(j.f||DEF.from).slice(0,28),
+      to:   String(j.t||DEF.to).slice(0,28),
+      what: String(j.w||DEF.what).slice(0,46),
+      note: String(j.n||DEF.note).slice(0,220)
+    };
+  }catch(e){ return null; }
+}
+function writeCfg(c){
+  var s = JSON.stringify({f:c.from,t:c.to,w:c.what,n:c.note});
+  return btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function slug(s){ return String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,22) || 'you'; }
+
+var CFG = readCfg();
+var IS_BUILDER = !CFG || /^#build/.test(location.hash);
+var EMBEDDED = (function(){ try{ return window.top !== window.self; }catch(e){ return true; } })();
+
+/* ---------------- code rain ---------------- */
+(function rain(){
+  if(RM) return;
+  var cv = $('rain'), cx = cv.getContext('2d');
+  var glyphs = '01{}[]()<>/*+-=;:$#&|!?abcdefgit npm merge yes'.split('');
+  var cols=[], W=0, H=0, size=14;
+  function fit(){
+    W = cv.width = innerWidth; H = cv.height = innerHeight;
+    var n = Math.ceil(W/size); cols = [];
+    for(var i=0;i<n;i++) cols.push(Math.random()*-H);
+  }
+  fit(); addEventListener('resize', fit);
+  var last=0;
+  (function loop(t){
+    requestAnimationFrame(loop);
+    if(t-last < 55) return; last=t;
+    cx.fillStyle='rgba(10,14,20,.13)'; cx.fillRect(0,0,W,H);
+    cx.font='500 '+size+'px JetBrains Mono, monospace';
+    for(var i=0;i<cols.length;i++){
+      var y = cols[i];
+      cx.fillStyle = Math.random()>.985 ? 'rgba(163,113,247,.55)' : 'rgba(63,185,80,.26)';
+      cx.fillText(glyphs[(Math.random()*glyphs.length)|0], i*size, y);
+      cols[i] = y > H + Math.random()*400 ? 0 : y + size;
+    }
+  })(0);
+})();
+
+/* ---------------- audio ---------------- */
+var AC=null;
+function blip(freq, dur, type){
+  if(RM) return;
+  try{
+    AC = AC || new (window.AudioContext||window.webkitAudioContext)();
+    if(AC.state==='suspended') AC.resume();
+    var o=AC.createOscillator(), g=AC.createGain();
+    o.type=type||'triangle'; o.frequency.value=freq;
+    g.gain.setValueAtTime(.0001,AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(.055,AC.currentTime+.012);
+    g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+(dur||.12));
+    o.connect(g); g.connect(AC.destination);
+    o.start(); o.stop(AC.currentTime+(dur||.12)+.02);
+  }catch(e){}
+}
+function chord(){
+  [523.25,659.25,783.99,1046.5].forEach(function(f,i){
+    setTimeout(function(){ blip(f,.5,'sine'); }, i*95);
+  });
+}
+
+/* ---------------- confetti ---------------- */
+function burst(){
+  if(RM) return;
+  var cv=$('fx'), cx=cv.getContext('2d');
+  cv.width=innerWidth; cv.height=innerHeight;
+  var colors=['#a371f7','#3fb950','#58a6ff','#d29922','#f778ba','#ffffff'];
+  var chars=['{','}','</>',';','✓','&&','=>','#1'];
+  var ps=[], i, n=190;
+  for(i=0;i<n;i++){
+    var fromLeft = i%2===0;
+    ps.push({
+      x: fromLeft ? -20 : innerWidth+20,
+      y: innerHeight*(.45+Math.random()*.4),
+      vx:(fromLeft?1:-1)*(7+Math.random()*11),
+      vy:-(9+Math.random()*11),
+      g:.30+Math.random()*.13,
+      s:5+Math.random()*8,
+      r:Math.random()*6.28,
+      vr:(Math.random()-.5)*.3,
+      c:colors[(Math.random()*colors.length)|0],
+      t:Math.random()>.72 ? chars[(Math.random()*chars.length)|0] : null,
+      life:1
+    });
+  }
+  var alive=true;
+  setTimeout(function(){ alive=false; }, 5200);
+  (function draw(){
+    cx.clearRect(0,0,cv.width,cv.height);
+    var any=false;
+    for(var i=0;i<ps.length;i++){
+      var p=ps[i];
+      p.x+=p.vx; p.y+=p.vy; p.vy+=p.g; p.vx*=.995; p.r+=p.vr;
+      if(p.y>innerHeight+60) p.life=0;
+      if(!p.life) continue;
+      any=true;
+      cx.save(); cx.translate(p.x,p.y); cx.rotate(p.r);
+      cx.globalAlpha=Math.max(0,Math.min(1,(innerHeight-p.y)/300+.35));
+      if(p.t){
+        cx.fillStyle=p.c; cx.font='700 '+(p.s+5)+'px JetBrains Mono, monospace';
+        cx.fillText(p.t,0,0);
+      }else{
+        cx.fillStyle=p.c; cx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.62);
+      }
+      cx.restore();
+    }
+    if(any&&alive) requestAnimationFrame(draw);
+    else cx.clearRect(0,0,cv.width,cv.height);
+  })();
+}
+
+/* ---------------- screens ---------------- */
+function show(id){
+  ['boot','pr','builder'].forEach(function(s){ $(s).classList.toggle('on', s===id); });
+  scrollTo(0,0);
+}
+
+/* ---------------- builder ---------------- */
+if(IS_BUILDER){
+  show('builder');
+
+  var fields = [['f-from','e-from'],['f-to','e-to']];
+  fields.forEach(function(p){
+    $(p[0]).addEventListener('input', function(){ $(p[1]).classList.remove('on'); });
+  });
+
+  function collect(){
+    var ok=true;
+    fields.forEach(function(p){
+      if(!$(p[0]).value.trim()){ $(p[1]).classList.add('on'); ok=false; }
+    });
+    if(!ok) return null;
+    return {
+      from:$('f-from').value.trim(),
+      to:$('f-to').value.trim(),
+      what:$('f-what').value.trim() || DEF.what,
+      note:$('f-note').value.trim() || DEF.note
+    };
+  }
+  function base(){ return location.href.split('#')[0]; }
+
+  if(EMBEDDED){
+    $('lab1').textContent = 'full link — only works if you self-host this file';
+    $('lab2').textContent = 'the code — paste this on the end of your share link';
+    $('hostNote').textContent =
+      'This page is running inside Claude, so the address above is its private sandbox and will not open for anyone else. ' +
+      'Use the artifact’s own share link instead and stick the code on the end of it, like ' +
+      '…/artifact/your-id#p=… — or download the HTML file, host it anywhere, and the full link works as-is.';
+  }else{
+    $('fragWrap').style.display = 'none';
+    $('hostNote').style.display = 'none';
+  }
+
+  $('gen').addEventListener('click', function(){
+    var c = collect(); if(!c) return;
+    var h = '#p=' + writeCfg(c);
+    $('link').textContent = base() + h;
+    $('frag').textContent = h;
+    $('out').classList.add('on');
+    blip(880,.1);
+  });
+  $('prev').addEventListener('click', function(){
+    var c = collect(); if(!c) return;
+    location.hash = 'p=' + writeCfg(c);
+    location.reload();
+  });
+  function wireCopy(btnId, srcId, label){
+    var btn = $(btnId);
+    btn.addEventListener('click', function(){
+      var t = $(srcId).textContent;
+      function done(){ btn.textContent='Copied ✓'; setTimeout(function(){ btn.textContent=label; },1700); }
+      function fallback(){
+        var ta=document.createElement('textarea');
+        ta.value=t; ta.style.position='fixed'; ta.style.opacity='0';
+        document.body.appendChild(ta); ta.select();
+        try{ document.execCommand('copy'); done(); }catch(e){}
+        document.body.removeChild(ta);
+      }
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(t).then(done, fallback);
+      }else fallback();
+    });
+  }
+  wireCopy('copy','link','Copy link');
+  wireCopy('copyFrag','frag','Copy code');
+  return;
+}
+
+/* ================= the ask ================= */
+var C = CFG;
+var BRANCH = 'feat/' + slug(C.what);
+
+$('repoName').textContent = slug(C.from) + '/' + slug(C.to);
+$('prTitle').textContent  = 'feat: add ' + C.to + ' to my ' + C.what;
+$('fromName').textContent = C.from;
+$('branchName').textContent = BRANCH;
+$('askLine').innerHTML = 'Approving this merges <b>' + esc(C.what) + '</b> into <b>main</b>. This action cannot be reverted.';
+document.title = 'PR #1 — feat: add ' + C.to + ' to my ' + C.what;
+
+/* diff */
+var diff = [
+  ['ctx', 12, '<span class="k">export const</span> <span class="f">friday</span> = {'],
+  ['del', 13, '  plans: <span class="k">null</span>,'],
+  ['del', 14, '  status: <span class="s">"technically free"</span>,'],
+  ['del', 15, '  company: [],'],
+  ['add', 13, '  plans: <span class="s">"' + esc(C.what) + '"</span>,'],
+  ['add', 14, '  status: <span class="s">"booked"</span>,'],
+  ['add', 15, '  company: [<span class="s">"' + esc(C.to) + '"</span>],'],
+  ['add', 16, '  nerves: <span class="p">Infinity</span>, <span class="cm">// known issue, tracked in #2</span>'],
+  ['add', 17, '  backupPlan: <span class="k">null</span>, <span class="cm">// there is no plan B</span>'],
+  ['add', 18, '  reversible: <span class="k">false</span>,'],
+  ['ctx', 19, '};']
+];
+$('diffBody').innerHTML = diff.map(function(d){
+  var cls = d[0]==='add' ? 'ln add' : d[0]==='del' ? 'ln del' : 'ln';
+  var mark = d[0]==='add' ? '+' : d[0]==='del' ? '−' : ' ';
+  return '<span class="'+cls+'"><span class="g">'+d[1]+'</span>'+mark+' '+d[2]+'</span>';
+}).join('');
+
+/* thread */
+var thread = $('thread'), cmtN = 0;
+function comment(who, txt, bot, tag){
+  cmtN++;
+  var el = document.createElement('div');
+  el.className = 'cmt';
+  el.innerHTML =
+    '<span class="av'+(bot?' bot':'')+'">'+esc(who.slice(0,2).toLowerCase())+'</span>' +
+    '<span class="bd"><span class="who">'+esc(who)+(tag?'<span class="tag">'+esc(tag)+'</span>':'')+'</span>' +
+    '<span class="tx">'+txt+'</span></span>';
+  thread.appendChild(el);
+  $('cmtCount').textContent = cmtN;
+  return el;
+}
+comment(C.from, esc(C.note.length>140 ? 'Opened this with more confidence than I actually have. Details in the diff.' : C.note), false, 'author');
+
+/* ---------------- the dodge ---------------- */
+var no = $('no'), noTxt = $('noTxt'), yes = $('yes'), slot = $('noslot');
+var dodges = 0, loose = false, done = false, GIVEUP = 15;
+var THRESH = 118;
+var YES_W = 0, YES_H = 0;
+
+var TAUNTS = [
+  'Are you sure?',
+  'Merge conflict',
+  'CI failed',
+  'Rebase and retry',
+  'Permission denied',
+  'npm ERR! peer dep missing',
+  'Reviewer is offline',
+  'Button is deprecated',
+  'Segmentation fault',
+  '429 — too many attempts',
+  'Branch protection enabled',
+  'Have you tried approving?',
+  'This is getting embarrassing',
+  'I can do this all day',
+  'ok last one, I promise'
+];
+var HECKLES = [
+  'Run <code>git blame</code> on this button, it was never my fault.',
+  'Heads up: <code>--force</code> is disabled on this branch.',
+  'Retried <code>request-changes</code> 3 times. All 3 timed out.',
+  'Reviewer has been idle for a suspiciously long time.',
+  'Escalating to <code>@yourself</code> — the only approver left.',
+  'Fun fact: this PR has a 100% approval rate so far.',
+  'The button is fine. The button is <em>thriving</em>. It just left.'
+];
+
+function rect(){ return no.getBoundingClientRect(); }
+
+function goLoose(){
+  var r = rect();
+  var yr = yes.getBoundingClientRect();
+  YES_W = yr.width; YES_H = yr.height;
+  slot.classList.add('empty');
+  no.style.width = r.width + 'px';
+  no.style.left = r.left + 'px';
+  no.style.top = r.top + 'px';
+  no.classList.add('loose');
+  loose = true;
+}
+
+function dodge(cx, cy){
+  if(done) return;
+  var r = rect();
+  var bx = r.left + r.width/2, by = r.top + r.height/2;
+
+  if(typeof cx !== 'number'){ cx = bx; cy = by; }
+
+  if(!loose) goLoose();
+
+  var dx = bx - cx, dy = by - cy;
+  var d = Math.hypot(dx, dy) || 1;
+  var ang = Math.atan2(dy, dx) + (Math.random()-0.5) * 1.5;
+  var dist = 150 + Math.random()*190;
+
+  var m = 14;
+  var maxX = innerWidth - r.width - m, maxY = innerHeight - r.height - m;
+  var nx = bx + Math.cos(ang)*dist - r.width/2;
+  var ny = by + Math.sin(ang)*dist - r.height/2;
+
+  nx = Math.max(m, Math.min(maxX, nx));
+  ny = Math.max(m, Math.min(maxY, ny));
+
+  if(Math.hypot(nx + r.width/2 - cx, ny + r.height/2 - cy) < THRESH + 40){
+    for(var i=0;i<14;i++){
+      nx = m + Math.random()*Math.max(1, maxX-m);
+      ny = m + Math.random()*Math.max(1, maxY-m);
+      if(Math.hypot(nx + r.width/2 - cx, ny + r.height/2 - cy) > THRESH + 60) break;
+    }
+  }
+
+  no.style.left = nx + 'px';
+  no.style.top  = ny + 'px';
+
+  dodges++;
+  var scale = Math.max(0.42, 1 - dodges*0.042);
+  var fade  = Math.max(0.34, 1 - dodges*0.045);
+  no.style.transform = 'scale(' + scale + ') rotate(' + ((Math.random()-.5)*11).toFixed(1) + 'deg)';
+  no.style.opacity = fade;
+
+  if(dodges <= TAUNTS.length) noTxt.textContent = TAUNTS[dodges-1];
+
+  var ysc = Math.min(1.85, 1 + dodges*0.058);
+  yes.style.setProperty('--sc', String(ysc));
+  yes.style.transform = 'scale(' + ysc + ')';
+  yes.style.marginRight = Math.round(YES_W * (ysc - 1)) + 'px';
+  yes.style.marginBottom = Math.round(YES_H * (ysc - 1)) + 'px';
+
+  var pct = Math.max(0, 100 - Math.round(dodges*(100/GIVEUP)));
+  $('meterFill').style.width = pct + '%';
+  $('meterVal').textContent = pct + '%';
+  if(pct < 55) $('meterFill').style.background = '#d29922';
+  if(pct < 25) $('meterFill').style.background = '#f85149';
+
+  blip(340 - dodges*11, .07, 'square');
+
+  if(dodges===2 || dodges===5 || dodges===8 || dodges===11){
+    comment('ci-bot', HECKLES[Math.min(HECKLES.length-1, (dodges/3)|0)], true, 'bot');
+  }
+  if(dodges === GIVEUP) giveUp();
+}
+
+function giveUp(){
+  no.classList.add('giveup');
+  no.style.transform = 'scale(1)';
+  no.style.opacity = 1;
+  noTxt.textContent = 'lgtm, fine';
+  no.querySelector('.gl').textContent = '✓';
+  comment('ci-bot', 'Reviewer withdrew their objection. Both paths now lead to <code>main</code>.', true, 'bot');
+  $('meterVal').textContent = '0%';
+  blip(660,.22,'sine');
+}
+
+/* a loose button must never end up outside a resized viewport */
+addEventListener('resize', function(){
+  if(!loose || done) return;
+  var r = rect(), m = 14;
+  var nx = Math.max(m, Math.min(innerWidth  - r.width  - m, r.left));
+  var ny = Math.max(m, Math.min(innerHeight - r.height - m, r.top));
+  no.style.left = nx + 'px';
+  no.style.top  = ny + 'px';
+});
+
+/* pointer (mouse/trackpad) — repel */
+addEventListener('pointermove', function(e){
+  if(done || no.classList.contains('giveup')) return;
+  if(e.pointerType === 'touch') return;
+  var r = rect();
+  var dx = (r.left + r.width/2) - e.clientX;
+  var dy = (r.top + r.height/2) - e.clientY;
+  if(Math.hypot(dx, dy) < THRESH) dodge(e.clientX, e.clientY);
+}, {passive:true});
+
+/* touch + stubborn clicks — teleport before the tap resolves */
+no.addEventListener('pointerdown', function(e){
+  if(no.classList.contains('giveup')) return;
+  e.preventDefault();
+  dodge(e.clientX, e.clientY);
+}, {passive:false});
+
+no.addEventListener('click', function(e){
+  if(no.classList.contains('giveup')){ accept(); return; }
+  e.preventDefault();
+  dodge();
+});
+
+/* keyboard stays usable — but the answer is still yes */
+no.addEventListener('focus', function(){
+  if(no.classList.contains('giveup')) return;
+  if(dodges === 0) comment('ci-bot', 'Keyboard navigation detected. Respect. The button still says no.', true, 'bot');
+  dodge();
+});
+
+/* ---------------- merge ---------------- */
+function accept(){
+  if(done) return;
+  done = true;
+
+  yes.disabled = true;
+  yes.innerHTML = '<span class="gl">⟳</span> Merging…';
+  no.style.opacity = 0;
+  no.style.pointerEvents = 'none';
+  slot.classList.remove('empty');
+
+  var check = $('blockCheck');
+  setTimeout(function(){
+    check.classList.remove('pend');
+    check.querySelector('.ic').textContent = '✓';
+    $('blockMsg').textContent = 'approved by ' + C.to;
+    blip(720,.12);
+  }, 520);
+
+  setTimeout(function(){
+    $('prBadge').classList.add('merged');
+    $('badgeTxt').textContent = 'Merged';
+    yes.innerHTML = '<span class="gl">✓</span> Merged';
+    yes.style.background = '#8957e5';
+    yes.style.borderColor = '#a371f766';
+    burst();
+    chord();
+
+    comment(C.to, 'Approved. Ship it.', false, 'reviewer');
+
+    var m = $('merged');
+    $('mergeTitle').textContent = 'Merged. No conflicts.';
+    $('mergeSub').innerHTML = 'Branch <code>' + esc(BRANCH) + '</code> was squashed into <code>main</code> by <b>' + esc(C.to) + '</b>.';
+    $('mergeNote').textContent = C.note;
+    var sha = Math.random().toString(16).slice(2,9);
+    $('gitlog').textContent =
+      '$ git log --oneline -3\n' +
+      sha + ' (HEAD -> main) feat: add ' + C.to + ' to my ' + C.what + '\n' +
+      'a1c0ffe  chore: rehearse asking 11 times\n' +
+      'deadbee  init: notice ' + C.to + ' across the room';
+    m.classList.add('on');
+    setTimeout(function(){ m.scrollIntoView({behavior: RM ? 'auto' : 'smooth', block:'center'}); }, 260);
+
+  }, 1250);
+}
+
+yes.addEventListener('click', accept);
+
+$('toBuilder').addEventListener('click', function(){
+  location.hash = 'build'; location.reload();
+});
+
+/* ---------------- boot sequence ---------------- */
+var LINES = [
+  ['$ ', 'git clone git@heart:' + slug(C.from) + '/' + slug(C.to) + '.git', 'c-g'],
+  ['',   'Cloning into \'' + slug(C.to) + '\'... done.', 'c-d'],
+  ['$ ', 'git checkout -b ' + BRANCH, 'c-g'],
+  ['',   'Switched to a new branch \'' + BRANCH + '\'', 'c-d'],
+  ['$ ', 'npm run ask-out', 'c-g'],
+  ['',   '> courage@0.1.0 ask-out', 'c-d'],
+  ['',   '> node ./src/say-it.js --nervous', 'c-d'],
+  ['',   'compiling feelings............ ok', 'c-b'],
+  ['',   'resolving 1 conflict (pride).. ok', 'c-b'],
+  ['',   'warning: 0 backup plans found', 'c-a'],
+  ['$ ', 'gh pr create --title "the important one"', 'c-g'],
+  ['',   'https://heart/' + slug(C.from) + '/' + slug(C.to) + '/pull/1  →  opening', 'c-p']
+];
+
+var log = $('bootlog'), li = 0, ci = 0, cursor = '<span class="cur"></span>', bootDone = false;
+function toPR(){
+  if(bootDone) return;
+  bootDone = true;
+  show('pr');
+}
+function typeIt(){
+  if(bootDone) return;
+  if(li >= LINES.length){ setTimeout(toPR, 620); return; }
+  var L = LINES[li], full = L[0] + L[1];
+  ci++;
+  var head = LINES.slice(0, li).map(function(x){
+    return '<span class="c-d">' + esc(x[0]) + '</span><span class="' + x[2] + '">' + esc(x[1]) + '</span>';
+  }).join('\n');
+  var cur = '<span class="c-d">' + esc(full.slice(0, Math.min(ci, L[0].length))) + '</span>' +
+            '<span class="' + L[2] + '">' + esc(full.slice(L[0].length, ci)) + '</span>';
+  log.innerHTML = (head ? head + '\n' : '') + cur + cursor;
+  log.scrollTop = log.scrollHeight;
+  if(ci >= full.length){
+    li++; ci = 0;
+    if(L[0]) blip(520,.03,'square');
+    setTimeout(typeIt, 190 + Math.random()*180);
+  }else{
+    setTimeout(typeIt, RM ? 1 : 11 + Math.random()*26);
+  }
+}
+$('skip').addEventListener('click', toPR);
+addEventListener('keydown', function(e){
+  if(!bootDone && (e.key === 'Enter' || e.key === 'Escape')) toPR();
+});
+if(RM) toPR(); else typeIt();
+
+try{
+  console.log('%c PR #1 ', 'background:#8957e5;color:#fff;font-weight:700;border-radius:3px',
+              '\nYou found devtools. Respect.\nThe No button is real, it just has commitment issues.\nTry: document.getElementById("no").click()');
+}catch(e){}
+
+})();
+</script>
