@@ -74,7 +74,7 @@ body{
   border-radius:12px;
   overflow:hidden;
   box-shadow:0 30px 80px -40px #000,0 0 0 1px #ffffff05;
-  animation:rise .5s cubic-bezier(.2,.8,.2,1) both;
+  animation:rise .5s cubic-bezier(.2,.8,.2,1) backwards;
 }
 @keyframes rise{from{opacity:0;transform:translateY(14px)}}
 .chrome{
@@ -170,7 +170,7 @@ h1.title .num{color:var(--txt-faint);font-weight:400}
 #thread{margin-top:4px}
 .cmt{
   display:flex;gap:11px;padding:11px 0;
-  animation:slide .35s cubic-bezier(.2,.8,.2,1) both;
+  animation:slide .35s cubic-bezier(.2,.8,.2,1) backwards;
 }
 @keyframes slide{from{opacity:0;transform:translateX(-8px)}}
 .cmt .av{
@@ -748,6 +748,7 @@ function goLoose(){
   no.style.left = r.left + 'px';
   no.style.top = r.top + 'px';
   no.classList.add('loose');
+  document.body.appendChild(no);
   loose = true;
 }
 
@@ -790,6 +791,19 @@ function dodge(cx, cy){
   no.style.transform = 'scale(' + scale + ') rotate(' + ((Math.random()-.5)*11).toFixed(1) + 'deg)';
   no.style.opacity = fade;
 
+  /* trust the rendered box, not the maths: if anything ever offsets fixed
+     positioning (a transformed ancestor, a scaled parent), correct by the delta
+     so the button can never strand itself outside the viewport */
+  var seen = rect(), fixX = 0, fixY = 0;
+  if(seen.left < m) fixX = m - seen.left;
+  else if(seen.right > innerWidth - m) fixX = (innerWidth - m) - seen.right;
+  if(seen.top < m) fixY = m - seen.top;
+  else if(seen.bottom > innerHeight - m) fixY = (innerHeight - m) - seen.bottom;
+  if(fixX || fixY){
+    no.style.left = (parseFloat(no.style.left) + fixX) + 'px';
+    no.style.top  = (parseFloat(no.style.top)  + fixY) + 'px';
+  }
+
   if(dodges <= TAUNTS.length) noTxt.textContent = TAUNTS[dodges-1];
 
   var ysc = Math.min(1.85, 1 + dodges*0.058);
@@ -826,11 +840,15 @@ function giveUp(){
 /* a loose button must never end up outside a resized viewport */
 addEventListener('resize', function(){
   if(!loose || done) return;
-  var r = rect(), m = 14;
-  var nx = Math.max(m, Math.min(innerWidth  - r.width  - m, r.left));
-  var ny = Math.max(m, Math.min(innerHeight - r.height - m, r.top));
-  no.style.left = nx + 'px';
-  no.style.top  = ny + 'px';
+  var r = rect(), m = 14, dx = 0, dy = 0;
+  if(r.left < m) dx = m - r.left;
+  else if(r.right > innerWidth - m) dx = (innerWidth - m) - r.right;
+  if(r.top < m) dy = m - r.top;
+  else if(r.bottom > innerHeight - m) dy = (innerHeight - m) - r.bottom;
+  if(dx || dy){
+    no.style.left = (parseFloat(no.style.left) + dx) + 'px';
+    no.style.top  = (parseFloat(no.style.top)  + dy) + 'px';
+  }
 });
 
 /* pointer (mouse/trackpad) — repel */
